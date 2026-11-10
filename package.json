@@ -1,0 +1,25 @@
+{
+  "name": "gitapath",
+  "version": "2.0.0",
+  "description": "The Bhagavad Gita as an interactive knowledge graph",
+  "private": true,
+  "scripts": {
+    "build": "node -e \"console.log('Build ready for Vercel')\"",
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "bhagavad-gita",
+    "knowledge-graph",
+    "pwa",
+    "graph-rag",
+    "vedanta"
+  ],
+  "author": "Gita Path",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "appId": "app.gitapath.app",
+  "appName": "Gita Path",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true,
+    "allowNavigation": [
+      "https://gitaviswa.vercel.app",
+      "https://holy-bhagavad-gita.org",
+      "https://api.groq.com",
+      "https://openrouter.ai",
+      "https://api.openai.com",
+      "https://api.x.ai",
+      "http://localhost:11434"
+    ]
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  }
+}
