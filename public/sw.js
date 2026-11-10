@@ -1,7 +1,7 @@
-// Gita Path service worker — makes the graph, verses, commentaries and app shell available offline.
+// Gita Sarathi service worker — makes the graph, verses, commentaries and app shell available offline.
 // Cache-first for immutable build assets and the knowledge-graph data; network-first for pages and APIs.
 // Bump VERSION when files under /images/ are replaced in place (they are cache-first and not content-hashed).
-const VERSION = "gitapath-v2";
+const VERSION = "gitasarathi-v2";
 const SHELL = ["/", "/data/gita-verses.json", "/data/gita-graph.json", "/favicon.svg"];
 
 self.addEventListener("install", (e) => {
@@ -12,7 +12,7 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION || k.startsWith("gitaviswa") || k.startsWith("gitavisva")).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION || k.startsWith("gitaviswa") || k.startsWith("gitavisva") || k.startsWith("gitapath")).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });

@@ -1,4 +1,4 @@
-# Gita Path (गीता पथ) · Full Local Clone
+# Gita Sarathi (गीता सारथि) · Full Local Clone
 
 A complete, high-fidelity offline Progressive Web Application (PWA) that models the entire **Bhagavad Gita** as an interactive knowledge graph.
 
@@ -32,7 +32,7 @@ A complete, high-fidelity offline Progressive Web Application (PWA) that models 
      - Integral & Bhakti (Swami Sivananda, Swami Ramsukhdas, Swami Tejomayananda, Shri Purohit Swami)
 
 5. **Reflect View (Manas)**:
-   - Zero-cloud private journal stored locally in IndexedDB (`gitapath:reflections`).
+   - Zero-cloud private journal stored locally in IndexedDB (`gitasarathi:reflections`).
    - Semantic mapping from personal feelings to corresponding Gita verses and remedies.
    - Empathetic distress detection with built-in helpline safety checks.
    - JSON export and import for reflection notes.

@@ -16,7 +16,7 @@ function generateGraphFallbackResponse({ question, context, mode }) {
     response += `2. **The Discerning Intellect (*Buddhi Yoga*)**: Krishna instructs that grief stems from confusing the transient body and outcome with the eternal *Ātman*. Through knowledge and detachment, the agitated mind steadies (BG 2.47, BG 2.70).\n`;
     response += `3. **Selfless Dedication (*Niṣkāma Karma & Bhakti*)**: By offering action without selfish clinging to rewards, one transmutes binding duty into liberating practice. This bridge culminates in inner serenity (*Śānti*) and supreme freedom (*Mokṣa*).\n`;
   } else {
-    response = `### Gita Path Knowledge Synthesis\n\n`;
+    response = `### Gita Sarathi Knowledge Synthesis\n\n`;
     response += `In response to your inquiry: **"${question || 'Contemplating the Gita'}"**\n\n`;
     if (context) {
       response += `#### Grounded Textual Evidence & Graph Lineage\n`;
@@ -38,7 +38,7 @@ function generateGraphFallbackResponse({ question, context, mode }) {
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gitapath-key, authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gitasarathi-key, authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
@@ -50,7 +50,7 @@ module.exports = async (req, res) => {
   }
 
   const { mode, provider, model, question, context, history } = payload;
-  const apiKey = req.headers['x-gitapath-key'] || (provider ? process.env[provider.toUpperCase() + '_API_KEY'] : '');
+  const apiKey = req.headers['x-gitasarathi-key'] || (provider ? process.env[provider.toUpperCase() + '_API_KEY'] : '');
 
   // If cloud provider API key is present
   if (apiKey && provider) {
@@ -63,7 +63,7 @@ module.exports = async (req, res) => {
     const targetUrl = endpoints[provider];
     if (targetUrl) {
       try {
-        const systemPrompt = `You are Gita Path, an enlightened, compassionate, and precise knowledge companion grounded in the 701 verses and philosophical graph of the Bhagavad Gita.\n\nGraph Context:\n${context || 'No explicit graph nodes selected.'}`;
+        const systemPrompt = `You are Gita Sarathi, an enlightened, compassionate, and precise knowledge companion grounded in the 701 verses and philosophical graph of the Bhagavad Gita.\n\nGraph Context:\n${context || 'No explicit graph nodes selected.'}`;
         const messages = [
           { role: 'system', content: systemPrompt },
           ...(history || []).map(h => ({ role: h.role, content: h.text || h.content })),
@@ -82,8 +82,8 @@ module.exports = async (req, res) => {
         if (extRes.ok && extRes.body) {
           res.writeHead(200, {
             'Content-Type': 'text/plain; charset=utf-8',
-            'X-GitaPath-Provider': provider.toUpperCase(),
-            'X-GitaPath-Model': model
+            'X-GitaSarathi-Provider': provider.toUpperCase(),
+            'X-GitaSarathi-Model': model
           });
           const reader = extRes.body.getReader();
           const decoder = new TextDecoder();
@@ -113,8 +113,8 @@ module.exports = async (req, res) => {
   const text = generateGraphFallbackResponse({ question, context, mode });
   res.writeHead(200, {
     'Content-Type': 'text/plain; charset=utf-8',
-    'X-GitaPath-Provider': 'Gita Knowledge Graph',
-    'X-GitaPath-Model': 'Graph-RAG'
+    'X-GitaSarathi-Provider': 'Gita Knowledge Graph',
+    'X-GitaSarathi-Model': 'Graph-RAG'
   });
 
   const words = text.split(' ');

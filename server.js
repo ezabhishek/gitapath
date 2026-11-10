@@ -89,7 +89,7 @@ function generateGraphFallbackResponse({ question, context, mode }) {
     response += `2. **The Discerning Intellect (*Buddhi Yoga*)**: Krishna instructs that grief stems from confusing the transient body and outcome with the eternal *Ātman*. Through knowledge and detachment, the agitated mind steadies (BG 2.47, BG 2.70).\n`;
     response += `3. **Selfless Dedication (*Niṣkāma Karma & Bhakti*)**: By offering action without selfish clinging to rewards, one transmutes binding duty into liberating practice. This bridge culminates in inner serenity (*Śānti*) and supreme freedom (*Mokṣa*).\n`;
   } else {
-    response = `### Gita Path Knowledge Synthesis\n\n`;
+    response = `### Gita Sarathi Knowledge Synthesis\n\n`;
     response += `In response to your inquiry: **"${question || 'Contemplating the Gita'}"**\n\n`;
     if (context) {
       response += `#### Grounded Textual Evidence & Graph Lineage\n`;
@@ -138,7 +138,7 @@ const server = http.createServer(async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gitapath-key, authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gitasarathi-key, authorization');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -269,13 +269,13 @@ const server = http.createServer(async (req, res) => {
       try {
         const payload = JSON.parse(body || '{}');
         const { mode, provider, model, baseUrl, question, context, history } = payload;
-        const apiKey = req.headers['x-gitapath-key'] || process.env[provider ? provider.toUpperCase() + '_API_KEY' : ''];
+        const apiKey = req.headers['x-gitasarathi-key'] || process.env[provider ? provider.toUpperCase() + '_API_KEY' : ''];
 
         // If user connects Ollama and Ollama is available, forward request
         if (provider === 'ollama') {
           const ollamaUrl = `${baseUrl || 'http://localhost:11434'}/v1/chat/completions`;
           try {
-            const systemPrompt = `You are Gita Path, an enlightened, compassionate, and precise knowledge companion grounded in the 701 verses and philosophical graph of the Bhagavad Gita.\n\nGraph Context:\n${context || 'No explicit graph nodes selected.'}`;
+            const systemPrompt = `You are Gita Sarathi, an enlightened, compassionate, and precise knowledge companion grounded in the 701 verses and philosophical graph of the Bhagavad Gita.\n\nGraph Context:\n${context || 'No explicit graph nodes selected.'}`;
             const messages = [
               { role: 'system', content: systemPrompt },
               ...(history || []).map(h => ({ role: h.role, content: h.text || h.content })),
@@ -289,8 +289,8 @@ const server = http.createServer(async (req, res) => {
             if (ollamaReq.ok && ollamaReq.body) {
               res.writeHead(200, {
                 'Content-Type': 'text/plain; charset=utf-8',
-                'X-GitaPath-Provider': 'Local Ollama',
-                'X-GitaPath-Model': model || 'llama3.1'
+                'X-GitaSarathi-Provider': 'Local Ollama',
+                'X-GitaSarathi-Model': model || 'llama3.1'
               });
               const reader = ollamaReq.body.getReader();
               const decoder = new TextDecoder();
@@ -327,7 +327,7 @@ const server = http.createServer(async (req, res) => {
           const targetUrl = endpoints[provider];
           if (targetUrl) {
             try {
-              const systemPrompt = `You are Gita Path, an enlightened, compassionate, and precise knowledge companion grounded in the 701 verses and philosophical graph of the Bhagavad Gita.\n\nGraph Context:\n${context || 'No explicit graph nodes selected.'}`;
+              const systemPrompt = `You are Gita Sarathi, an enlightened, compassionate, and precise knowledge companion grounded in the 701 verses and philosophical graph of the Bhagavad Gita.\n\nGraph Context:\n${context || 'No explicit graph nodes selected.'}`;
               const messages = [
                 { role: 'system', content: systemPrompt },
                 ...(history || []).map(h => ({ role: h.role, content: h.text || h.content })),
@@ -344,8 +344,8 @@ const server = http.createServer(async (req, res) => {
               if (extRes.ok && extRes.body) {
                 res.writeHead(200, {
                   'Content-Type': 'text/plain; charset=utf-8',
-                  'X-GitaPath-Provider': provider.toUpperCase(),
-                  'X-GitaPath-Model': model
+                  'X-GitaSarathi-Provider': provider.toUpperCase(),
+                  'X-GitaSarathi-Model': model
                 });
                 const reader = extRes.body.getReader();
                 const decoder = new TextDecoder();
@@ -375,8 +375,8 @@ const server = http.createServer(async (req, res) => {
         // Graph-grounded synthesis fallback
         const synthResponse = generateGraphFallbackResponse({ question, context, mode });
         streamText(res, synthResponse, {
-          'X-GitaPath-Provider': 'Gita Knowledge Graph',
-          'X-GitaPath-Model': 'Graph-RAG'
+          'X-GitaSarathi-Provider': 'Gita Knowledge Graph',
+          'X-GitaSarathi-Model': 'Graph-RAG'
         });
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -437,7 +437,7 @@ function startServer(port) {
 
   currentServer.listen(port, () => {
     console.log(`\n======================================================`);
-    console.log(`  Gita Path (गीता पथ) is running locally!`);
+    console.log(`  Gita Sarathi (गीता सारथि) is running locally!`);
     console.log(`  URL: http://localhost:${port}`);
     console.log(`  Explore View: http://localhost:${port}/?view=cosmos`);
     console.log(`  Lineage View: http://localhost:${port}/?view=darshana`);

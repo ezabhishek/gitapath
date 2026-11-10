@@ -1,26 +1,31 @@
-
 // ==========================================
-// One-Time Storage Migration (GitaViśva -> Gita Path)
+// One-Time Storage Migration -> Gita Sarathi
 // Preserves reflections, reading positions, theme & preferences
+// Migrates legacy keys: gitaviswa:*, gitavisva:*, gitapath:* -> gitasarathi:*
 // ==========================================
 (function() {
   try {
     // 1. LocalStorage migration
     if (typeof window !== 'undefined' && window.localStorage) {
       const keysToMigrate = [];
+      const prefixes = ['gitaviswa:', 'gitaviswa-', 'gitavisva:', 'gitavisva-', 'gitapath:', 'gitapath-'];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && (k.startsWith('gitaviswa:') || k.startsWith('gitaviswa-') || k.startsWith('gitavisva:') || k.startsWith('gitavisva-'))) {
+        if (k && prefixes.some(p => k.startsWith(p))) {
           keysToMigrate.push(k);
         }
       }
       for (const oldKey of keysToMigrate) {
         const val = localStorage.getItem(oldKey);
-        const newKey = oldKey
-          .replace(/^gitaviswa:/, 'gitapath:')
-          .replace(/^gitaviswa-/, 'gitapath-')
-          .replace(/^gitavisva:/, 'gitapath:')
-          .replace(/^gitavisva-/, 'gitapath-');
+        let newKey = oldKey;
+        for (const p of prefixes) {
+          if (oldKey.startsWith(p)) {
+            const suffix = oldKey.slice(p.length);
+            const sep = p.endsWith(':') ? ':' : '-';
+            newKey = 'gitasarathi' + sep + suffix;
+            break;
+          }
+        }
         if (localStorage.getItem(newKey) === null && val !== null) {
           localStorage.setItem(newKey, val);
         }
@@ -28,75 +33,80 @@
       }
     }
 
-    // 2. CacheStorage cleanup of obsolete gitaviswa caches
+    // 2. CacheStorage cleanup of obsolete caches
     if (typeof window !== 'undefined' && window.caches) {
       caches.keys().then((names) => {
         names.forEach((name) => {
-          if (name.startsWith('gitaviswa') || name.startsWith('gitavisva')) {
+          if (name.startsWith('gitaviswa') || name.startsWith('gitavisva') || name.startsWith('gitapath')) {
             caches.delete(name);
           }
         });
       }).catch(() => {});
     }
 
-    // 3. IndexedDB migration ('gitaviswa' -> 'gitapath', store 'manas')
+    // 3. IndexedDB migration ('gitaviswa' & 'gitapath' -> 'gitasarathi', store 'manas')
     if (typeof window !== 'undefined' && window.indexedDB) {
-      const req = indexedDB.open('gitaviswa');
-      req.onerror = function() {};
-      req.onsuccess = function(e) {
-        const oldDb = e.target.result;
-        if (!oldDb.objectStoreNames.contains('manas')) {
-          oldDb.close();
-          return;
-        }
-        const newReq = indexedDB.open('gitapath');
-        newReq.onupgradeneeded = function(ev) {
-          const newDb = ev.target.result;
-          if (!newDb.objectStoreNames.contains('manas')) {
-            newDb.createObjectStore('manas');
-          }
-        };
-        newReq.onerror = function() { oldDb.close(); };
-        newReq.onsuccess = function(ev) {
-          const newDb = ev.target.result;
-          try {
-            const oldTx = oldDb.transaction('manas', 'readonly');
-            const oldStore = oldTx.objectStore('manas');
-            const cursorReq = oldStore.openCursor();
-            const newTx = newDb.transaction('manas', 'readwrite');
-            const newStore = newTx.objectStore('manas');
-
-            cursorReq.onsuccess = function(ce) {
-              const cursor = ce.target.result;
-              if (cursor) {
-                newStore.put(cursor.value, cursor.key);
-                cursor.continue();
-              } else {
-                newTx.oncomplete = function() {
-                  oldDb.close();
-                  newDb.close();
-                  try { indexedDB.deleteDatabase('gitaviswa'); } catch(err) {}
-                };
+      function migrateDb(oldDbName) {
+        return new Promise((resolve) => {
+          const req = indexedDB.open(oldDbName);
+          req.onerror = () => resolve();
+          req.onsuccess = function(e) {
+            const oldDb = e.target.result;
+            if (!oldDb.objectStoreNames.contains('manas')) {
+              oldDb.close();
+              return resolve();
+            }
+            const newReq = indexedDB.open('gitasarathi');
+            newReq.onupgradeneeded = function(ev) {
+              const newDb = ev.target.result;
+              if (!newDb.objectStoreNames.contains('manas')) {
+                newDb.createObjectStore('manas');
               }
             };
-            cursorReq.onerror = function() {
-              oldDb.close();
-              newDb.close();
+            newReq.onerror = () => { oldDb.close(); resolve(); };
+            newReq.onsuccess = function(ev) {
+              const newDb = ev.target.result;
+              try {
+                const oldTx = oldDb.transaction('manas', 'readonly');
+                const oldStore = oldTx.objectStore('manas');
+                const cursorReq = oldStore.openCursor();
+                const newTx = newDb.transaction('manas', 'readwrite');
+                const newStore = newTx.objectStore('manas');
+
+                cursorReq.onsuccess = function(ce) {
+                  const cursor = ce.target.result;
+                  if (cursor) {
+                    newStore.put(cursor.value, cursor.key);
+                    cursor.continue();
+                  } else {
+                    newTx.oncomplete = function() {
+                      oldDb.close();
+                      newDb.close();
+                      try { indexedDB.deleteDatabase(oldDbName); } catch(err) {}
+                      resolve();
+                    };
+                  }
+                };
+                cursorReq.onerror = () => { oldDb.close(); newDb.close(); resolve(); };
+              } catch(err) {
+                oldDb.close();
+                newDb.close();
+                resolve();
+              }
             };
-          } catch(err) {
-            oldDb.close();
-            newDb.close();
-          }
-        };
-      };
+          };
+        });
+      }
+
+      migrateDb('gitaviswa').then(() => migrateDb('gitapath')).catch(() => {});
     }
   } catch(e) {
-    console.warn('Gita Path storage migration notice:', e);
+    console.warn('Gita Sarathi storage migration notice:', e);
   }
 })();
 // ==========================================
 
-// Gita Path Native Android Offline API Bridge
+// Gita Sarathi Native Offline API Bridge
 (function () {
   const originalFetch = window.fetch;
 
@@ -188,7 +198,7 @@
           "2. **The Discerning Intellect (*Buddhi Yoga*)**: Krishna instructs that grief stems from confusing the transient body and outcome with the eternal *Ātman*. Through knowledge and detachment, the agitated mind steadies (BG 2.47, BG 2.70).\n" +
           "3. **Selfless Dedication (*Niṣkāma Karma & Bhakti*)**: By offering action without selfish clinging to rewards, one transmutes binding duty into liberating practice. This bridge culminates in inner serenity (*Śānti*) and supreme freedom (*Mokṣa*).\n";
       } else {
-        responseText = `### Gita Path Knowledge Synthesis\n\n` +
+        responseText = `### Gita Sarathi Knowledge Synthesis\n\n` +
           `In response to your inquiry: **"${question || 'Contemplating the Gita'}"**\n\n`;
         if (context) {
           responseText += "#### Grounded Textual Evidence & Graph Lineage\n" +
@@ -225,8 +235,8 @@
         status: 200,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
-          'X-GitaPath-Provider': 'Gita Knowledge Graph',
-          'X-GitaPath-Model': 'Graph-RAG (Offline Native)'
+          'X-GitaSarathi-Provider': 'Gita Knowledge Graph',
+          'X-GitaSarathi-Model': 'Graph-RAG (Offline Native)'
         }
       });
     }

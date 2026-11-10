@@ -1,5 +1,5 @@
 {
-  "name": "gitapath",
+  "name": "gitasarathi",
   "version": "2.0.0",
   "description": "The Bhagavad Gita as an interactive knowledge graph",
   "private": true,
@@ -15,7 +15,7 @@
     "graph-rag",
     "vedanta"
   ],
-  "author": "Gita Path",
+  "author": "Gita Sarathi",
   "license": "MIT",
   "dependencies": {
     "@capacitor/android": "^8.6.0",
